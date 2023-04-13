@@ -34,7 +34,7 @@ namespace MultiThreading.Task6.Continuation
 
             // Continuation task should be executed when the parent task would be finished with fail and parent task thread should be reused for continuation.
             var parentTask3 = Task.Run(() => DoWork());
-            parentTask3.ContinueWith(t => Console.WriteLine("Continuation 3"), TaskContinuationOptions.AttachedToParent | TaskContinuationOptions.ExecuteSynchronously);
+            parentTask3.ContinueWith(t => Console.WriteLine("Continuation 3"), TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
 
             // Continuation task should be executed outside of the thread pool when the parent task would be cancelled.
             var cts = new CancellationTokenSource();

@@ -44,7 +44,8 @@ namespace MultiThreading.Task2.Chaining
 
             Task<int[]> sortTask = multiplyTask.ContinueWith(task =>
             {
-                int[] sortedArray = task.Result.OrderBy(x => x).ToArray();
+                int[] sortedArray = task.Result;
+                Array.Sort(sortedArray);
                 Console.WriteLine($"3. Sorted array: {string.Join(", ", sortedArray)}");
                 return sortedArray;
             });

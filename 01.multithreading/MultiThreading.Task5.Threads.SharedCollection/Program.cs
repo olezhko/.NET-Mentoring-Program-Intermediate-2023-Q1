@@ -15,8 +15,9 @@ namespace MultiThreading.Task5.Threads.SharedCollection
     {
         static object lockObject = new object();
         static List<int> collection = new List<int>();
-        static bool elementAdded = false;
 
+        private static SemaphoreSlim semaphore1 = new SemaphoreSlim(initialCount:0);
+        private static SemaphoreSlim semaphore2 = new SemaphoreSlim(initialCount:0);
         static async Task Main(string[] args)
         {
             Console.WriteLine("5. Write a program which creates two threads and a shared collection:");
@@ -28,39 +29,35 @@ namespace MultiThreading.Task5.Threads.SharedCollection
             {
                 for (int i = 1; i <= 10; i++)
                 {
+                    semaphore1.Wait();
                     lock (lockObject)
                     {
                         collection.Add(i);
-                        elementAdded = true;
-                        Monitor.Pulse(lockObject);
                     }
-                    Thread.Sleep(100);
+                    semaphore2.Release();
                 }
             });
 
             var thread2 = new Thread(() =>
             {
-                while (true)
+                while (collection.Count != 10)
                 {
+                    semaphore2.Wait();
                     lock (lockObject)
                     {
-                        while (!elementAdded)
-                        {
-                            Monitor.Wait(lockObject);
-                        }
-
                         Console.WriteLine($"[{string.Join(", ", collection)}]");
-                        elementAdded = false;
                     }
+                    semaphore1.Release();
                 }
             });
 
             thread1.Start();
             thread2.Start();
 
+            semaphore1.Release(); // Start with semaphore 1 released
+
             thread1.Join();
             thread2.Join();
-
 
             Console.ReadLine();
         }

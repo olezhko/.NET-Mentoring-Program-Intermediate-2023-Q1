@@ -20,18 +20,21 @@ namespace MultiThreading.Task3.MatrixMultiplier.Tests
         public void ParallelEfficiencyTest()
         {
             int sizeOfMatrix = 2;
+            Stopwatch watch = new Stopwatch();
             do
             {
                 var firstMatrix = new Matrix(sizeOfMatrix, sizeOfMatrix, true);
                 var secondMatrix = new Matrix(sizeOfMatrix, sizeOfMatrix, true);
 
-                Stopwatch watch = new Stopwatch();
                 watch.Start();
                 IMatrix resultSimple = new MatricesMultiplier().Multiply(firstMatrix, secondMatrix);
+                watch.Stop();
                 var timeForSimple = watch.Elapsed;
 
+                watch.Restart();
                 IMatrix resultParallel = new MatricesMultiplierParallel().Multiply(firstMatrix, secondMatrix);
-                var timeForParallel = watch.Elapsed - timeForSimple;
+                watch.Stop();
+                var timeForParallel = watch.Elapsed;
                 if (timeForParallel < timeForSimple)
                 {
                     Console.WriteLine($"Best size: {sizeOfMatrix}");
