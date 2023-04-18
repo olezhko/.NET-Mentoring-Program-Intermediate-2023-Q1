@@ -13,7 +13,6 @@ namespace MultiThreading.Task5.Threads.SharedCollection
 {
     class Program
     {
-        static object lockObject = new object();
         static List<int> collection = new List<int>();
 
         private static SemaphoreSlim semaphore1 = new SemaphoreSlim(initialCount:0);
@@ -30,10 +29,7 @@ namespace MultiThreading.Task5.Threads.SharedCollection
                 for (int i = 1; i <= 10; i++)
                 {
                     semaphore1.Wait();
-                    lock (lockObject)
-                    {
-                        collection.Add(i);
-                    }
+                    collection.Add(i);
                     semaphore2.Release();
                 }
             });
@@ -43,10 +39,7 @@ namespace MultiThreading.Task5.Threads.SharedCollection
                 while (collection.Count != 10)
                 {
                     semaphore2.Wait();
-                    lock (lockObject)
-                    {
-                        Console.WriteLine($"[{string.Join(", ", collection)}]");
-                    }
+                    Console.WriteLine($"[{string.Join(", ", collection)}]");
                     semaphore1.Release();
                 }
             });
