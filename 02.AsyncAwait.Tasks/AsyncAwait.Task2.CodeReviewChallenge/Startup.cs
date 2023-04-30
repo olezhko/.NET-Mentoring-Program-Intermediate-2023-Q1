@@ -31,9 +31,9 @@ public class Startup
         });
 
         services.AddSingleton<IStatisticService, CloudStatisticService>();
-        services.AddSingleton<ISupportService, CloudSupportService>();
-        services.AddSingleton<IPrivacyDataService, PrivacyDataService>();
-        services.AddScoped<IAssistant, ManualAssistant>();
+        services.AddScoped<ISupportService, CloudSupportService>();
+        services.AddTransient<IPrivacyDataService, PrivacyDataService>();
+        services.AddTransient<IAssistant, ManualAssistant>();
 
         services.AddMvc(options => options.EnableEndpointRouting = false);
     }
