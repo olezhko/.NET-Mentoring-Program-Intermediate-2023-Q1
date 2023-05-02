@@ -1,5 +1,4 @@
 ﻿using ConsoleImageProcessor.Models;
-using System;
 
 namespace ConsoleImageProcessor.Service
 {
@@ -11,7 +10,7 @@ namespace ConsoleImageProcessor.Service
     {
         private readonly ITransmitterService _transmitter;
         const int MaxMessageSize = 1000000;
-        byte[] buffer = new byte[MaxMessageSize];
+        private byte[] _buffer = new byte[MaxMessageSize];
         public DataCaptureService(ITransmitterService transmitter)
         {
             _transmitter = transmitter;
@@ -44,11 +43,11 @@ namespace ConsoleImageProcessor.Service
                     using FileStream fileStream = new FileStream(args.FullPath, FileMode.Open);
                     int bytesRead;
                     int segmentIndex = 0;
-                    while ((bytesRead = fileStream.Read(buffer, 0, MaxMessageSize)) > 0)
+                    while ((bytesRead = fileStream.Read(_buffer, 0, MaxMessageSize)) > 0)
                     {
                         // Send the chunk as a message to the message queue
                         byte[] segment = new byte[bytesRead];
-                        Array.Copy(buffer, 0, segment, 0, bytesRead);
+                        Array.Copy(_buffer, 0, segment, 0, bytesRead);
                         SendMessageToQueue(segment, args.Name, segmentIndex, fileStream.Length);
                         segmentIndex++;
                     }
@@ -56,6 +55,7 @@ namespace ConsoleImageProcessor.Service
                 }
                 catch (IOException e)
                 {
+                    Console.WriteLine(e.Message);
                 }
             }
         }

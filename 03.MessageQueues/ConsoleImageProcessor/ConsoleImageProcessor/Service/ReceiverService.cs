@@ -16,11 +16,9 @@ namespace ConsoleImageProcessor.Service
         private ConnectionFactory _factory;
         private IConnection _connection;
         private IModel _channel;
-        private Dictionary<string, List<RabbitMessage>> ProcessFiles;
-        private string storageFolder;
+        private readonly string _storageFolder;
         public ReceiverService(string folder)
         {
-            ProcessFiles = new Dictionary<string, List<RabbitMessage>>();
             _factory = new ConnectionFactory() { HostName = "localhost" };
             _connection = _factory.CreateConnection();
 
@@ -32,11 +30,11 @@ namespace ConsoleImageProcessor.Service
                 exclusive: false,
                 autoDelete: false);
 
-            storageFolder = folder;
+            _storageFolder = folder;
 
-            if (!Directory.Exists(storageFolder))
+            if (!Directory.Exists(_storageFolder))
             {
-                Directory.CreateDirectory(storageFolder);
+                Directory.CreateDirectory(_storageFolder);
             }
         }
 
@@ -48,15 +46,15 @@ namespace ConsoleImageProcessor.Service
             // handle the Received event on the consumer
             // this is triggered whenever a new message
             // is added to the queue by the producer
-            consumer.Received += (model, ea) =>
+            consumer.Received += async (model, ea) =>
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
 
-                Task.Run(() =>
+                await Task.Run( async () =>
                 {
                     var item = JsonConvert.DeserializeObject<RabbitMessage>(message);
-                    CollectFile(item);
+                    await CollectFile(item);
                 }, token);
             };
 
@@ -64,43 +62,19 @@ namespace ConsoleImageProcessor.Service
             Console.WriteLine("ReceiverService started");
         }
 
-        private void CollectFile(RabbitMessage item)
+        private async Task CollectFile(RabbitMessage item)
         {
-            string filePath = Path.Combine(storageFolder, item.Filename);
+            string filePath = Path.Combine(_storageFolder, item.Filename);
             if (item.DataBytes.Length == item.FullSize)
             {
-                File.WriteAllBytes(filePath, item.DataBytes);
+                await File.WriteAllBytesAsync(filePath, item.DataBytes);
                 Console.WriteLine("File received");
             }
             else
             {
-                if (!ProcessFiles.ContainsKey(item.Filename))
-                {
-                    var list = new List<RabbitMessage> { item };
-                    ProcessFiles.Add(item.Filename, list);
-                }
-                else
-                {
-                    var segments = ProcessFiles[item.Filename];
-                    segments.Add(item);
-
-                    bool isLastSegment = segments.Select(seg=>seg.DataBytes.Length).Sum() == item.FullSize;
-                    if (!isLastSegment) 
-                        return;
-
-                    var fileBytes = new byte[item.FullSize];
-                    var sortedSegments = segments.OrderBy(s => s.SegmentIndex).ToList();
-                    for (var i = 0; i < sortedSegments.Count; i++)
-                    {
-                        var segment = sortedSegments[i];
-                        Array.Copy(segment.DataBytes, 0, fileBytes, i * segment.DataBytes.Length, segment.DataBytes.Length);
-                    }
-                    segments.Clear();
-                    File.WriteAllBytes(filePath, fileBytes);
-
-                    ProcessFiles.Remove(item.Filename);
-                    Console.WriteLine("Collected file received");
-                }
+                var fileWrite = File.OpenWrite(filePath);
+                await fileWrite.WriteAsync(item.DataBytes, (int)fileWrite.Length, item.DataBytes.Length);
+                Console.WriteLine("Collected file received");
             }
         }
     }
