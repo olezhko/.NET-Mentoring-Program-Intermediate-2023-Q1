@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ProfileSample.DAL;
+using ProfileSample.Models;
 using System.IO;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
-using ProfileSample.DAL;
-using ProfileSample.Models;
 
 namespace ProfileSample.Controllers
 {
@@ -15,22 +12,14 @@ namespace ProfileSample.Controllers
         {
             var context = new ProfileSampleEntities();
 
-            var sources = context.ImgSources.Take(20).Select(x => x.Id);
-            
-            var model = new List<ImageModel>();
-
-            foreach (var id in sources)
-            {
-                var item = context.ImgSources.Find(id);
-
-                var obj = new ImageModel()
+            var model = context.ImgSources
+                .Take(20)
+                .Select(item => new ImageModel()
                 {
-                    Name = item.Name,
-                    Data = item.Data
-                };
-
-                model.Add(obj);
-            } 
+                    Data = item.Data,
+                    Name = item.Name
+                })
+                .ToList();
 
             return View(model);
         }
@@ -47,7 +36,7 @@ namespace ProfileSample.Controllers
                     {
                         byte[] buff = new byte[stream.Length];
 
-                        stream.Read(buff, 0, (int) stream.Length);
+                        stream.Read(buff, 0, (int)stream.Length);
 
                         var entity = new ImgSource()
                         {
@@ -58,7 +47,7 @@ namespace ProfileSample.Controllers
                         context.ImgSources.Add(entity);
                         context.SaveChanges();
                     }
-                } 
+                }
             }
 
             return RedirectToAction("Index");
