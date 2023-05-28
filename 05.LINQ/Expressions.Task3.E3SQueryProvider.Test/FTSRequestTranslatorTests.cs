@@ -48,6 +48,28 @@ namespace Expressions.Task3.E3SQueryProvider.Test
         }
 
         [Fact]
+        public void TestBinaryEqualsQueryable_Reverse()
+        {
+            var translator = new ExpressionToFtsRequestTranslator();
+            Expression<Func<IQueryable<EmployeeEntity>, IQueryable<EmployeeEntity>>> expression
+                = query => query.Where(e => "EPRUIZHW006" == e.Workstation);
+
+            string translated = translator.Translate(expression);
+            Assert.Equal("Workstation:(EPRUIZHW006)", translated);
+        }
+
+        [Fact]
+        public void TestBinaryEquals_Reverse()
+        {
+            var translator = new ExpressionToFtsRequestTranslator();
+            Expression<Func<EmployeeEntity, bool>> expression
+                = employee => "EPRUIZHW006" == employee.Workstation;
+
+            string translated = translator.Translate(expression);
+            Assert.Equal("Workstation:(EPRUIZHW006)", translated);
+        }
+
+        [Fact]
         public void TestMethodEquals()
         {
             var translator = new ExpressionToFtsRequestTranslator();
