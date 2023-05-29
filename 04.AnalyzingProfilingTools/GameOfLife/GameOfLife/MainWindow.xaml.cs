@@ -19,13 +19,12 @@ namespace GameOfLife
 
             timer = new DispatcherTimer();
             timer.Tick += OnTimer;
-            timer.Interval = TimeSpan.FromMilliseconds(200);
+            timer.Interval = TimeSpan.FromMilliseconds(40);
         }
 
 
         private void StartAd()
         {
-            
             {
                 adWindow = new AdWindow[2];
                 for (int i = 0; i < 2; i++)
@@ -46,13 +45,9 @@ namespace GameOfLife
 
         private void AdWindowOnClosed(object sender, EventArgs eventArgs)
         {
-            for (int i = 0; i < 2; i++)
-            {
-                adWindow[i].Closed -= AdWindowOnClosed;
-                adWindow[i] = null;
-            }
-            
-            
+            AdWindow senderAdWindow = sender as AdWindow;
+            senderAdWindow.Closed -= AdWindowOnClosed;
+            senderAdWindow = null;
         }
 
 
@@ -68,6 +63,18 @@ namespace GameOfLife
             {
                 timer.Stop();
                 ButtonStart.Content = "Start";
+                StopAd();
+            }
+        }
+
+        private void StopAd()
+        {
+            if (adWindow != null)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    adWindow[i].Close();
+                }
             }
         }
 
